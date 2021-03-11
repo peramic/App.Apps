@@ -1,0 +1,98 @@
+#!/bin/busybox ash
+
+### BEGIN INIT INFO
+# Provides:		mkenv
+# Required-Start:	$remote_fs $syslog networking
+# Required-Stop:	$remote_fs $syslog
+# Default-Start:	S
+# Short-Description:	Ha-VIS mkenv
+# Description: 
+#
+### END INIT INFO
+
+. /etc/profile
+
+NAME=$(basename $(realpath $0))
+
+do_start()
+{
+if [ -x /usr/bin/mica-rpc ]; then
+
+IFS="
+"
+
+for i in $(lsusb); do
+  MAJOR=${i:4:3}
+  if [ ! -d /dev/bus/usb/$MAJOR ]; then
+    mkdir -p /dev/bus/usb/$MAJOR
+  fi
+  MINOR=${i:15:3}
+  DEV=/dev/bus/usb/$MAJOR/$MINOR
+  if [ ! -c $DEV ]; then
+    mknod -m 400 $DEV c 189 $(expr \( $MAJOR \- 1 \) \* 128 \+ $MINOR \- 1)
+  fi
+done
+
+unset IFS
+
+if ! mountpoint -q /var/log; then
+  mount -t tmpfs -o size=32M none /var/log
+fi
+
+# workaround
+busybox ping -6 -W 1 -c 1 Depot
+
+INFO_TEXT=$(echo '{"jsonrpc": "2.0", "id": 1,"method":"get_info_text", "params":{}}' | mica-rpc https://mica/ws/)
+VARIANT=$(echo $INFO_TEXT | sed -e 's/.*"Product Name:\s*\([^"]*\)".*/\1/')
+VERSION=$(echo $INFO_TEXT | sed -e 's/.*"Base Version:\s*\([^"]*\)".*/\1/')
+REVISION=$(echo $INFO_TEXT | sed -e 's/.*"Product Revision:\s*\([^"]*\)".*/\1/')
+
+cat > /etc/profile.d/mica.sh <<EOF
+export MICA_SERIAL=$MICA_SERIAL
+export MICA_VARIANT="$VARIANT"
+export MICA_VERSION="$VERSION"
+export MICA_REVISION="$REVISION"
+export MICA_NAME=$MICA_NAME
+export HOSTNAME=$HOSTNAME
+export DEPOT=depot
+export AUTH=MICA
+EOF
+
+fi
+
+if [ ! -d /opt/havis-apps/felix-cache ]; then
+  TMP=$(mktemp -d)
+  wget -q "http://depot/cgi-bin/depot.sh" -O - | tar x -C $TMP
+  for APP in $(ls -tr $TMP/*.app); do
+    sh $APP install
+  done
+  rm -r $TMP
+fi
+}
+
+do_stop()
+{
+  echo -n "Stopped"
+}
+
+case "$1" in
+  start)
+    echo -n "Starting $NAME: "
+    do_start
+    ;;
+  stop)
+    echo -n "Stopping $NAME: "
+    do_stop
+    ;;
+  run)
+    do_run
+    ;;
+  restart)
+    echo -n "Restarting $NAME: "
+    do_start
+    ;;
+  *)
+    echo "Usage: $NAME {start|stop|restart}"
+    exit 1
+    ;;
+esac

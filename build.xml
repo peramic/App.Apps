@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<project name="havis-apps" default="build" xmlns:ivy="antlib:org.apache.ivy.ant" xmlns:if="ant:if" xmlns:unless="ant:unless">
+
+	<property file="${basedir}/build.properties" />
+	<property name="basename" value="${ant.project.name}" />
+	<property name="build.dir" location="${basedir}/target" />
+	<property name="build.dir.classes" location="${build.dir}/classes" />
+	<property name="lib.dir" location="${basedir}/lib" />
+	<property name="resources.dir" location="${basedir}/src/main/resources" />
+	<property name="resources.dir.classpath" location="${resources.dir}/classpath" />
+	<property name="src.main.dir" location="${basedir}/src/main/java" />
+	<property name="dst.dir" location="${basedir}/deb/opt/${basename}" />
+
+	<property file="${resources.dir}/MANIFEST.MF" prefix="manifest" />
+	<property file="${resources.dir}/build.properties" />
+
+	<path id="build.classpath">
+		<fileset dir="${lib.dir}" />
+	</path>
+
+	<filterset id="manifest" filtersfile="${resources.dir}/MANIFEST.MF" />
+
+	<!-- Checks if the build.properties file exists 
+         and prints an error message if the file does not exist -->
+	<target name="check.build.properties">
+		<condition property="ivy.resolver" else="local">
+			<isset property="ivy.resolver" />
+		</condition>
+		<fail message="Missing property 'api.url'. Does 'build.properties' file exists?" unless="api.url" />
+		<fail message="Missing property 'ivy.url'. Does 'build.properties' file exists?" unless="ivy.url" />
+		<fail message="Missing property 'platform'. Does 'build.properties' file exists?" unless="platform" />
+
+		<condition property="arch" value="amd64">
+			<matches pattern="^linux-amd64$" string="${platform}" />
+		</condition>
+
+		<condition property="arch" value="armhf">
+			<matches pattern="^linux-arm$" string="${platform}" />
+		</condition>
+		<echoproperties />
+	</target>
+
+	<target name="clean-cache" description="Cleans ivy cache">
+		<ivy:cleancache />
+	</target>
+
+	<target name="clean" description="Cleans the project">
+		<delete dir="${build.dir}" />
+		<delete dir="${lib.dir}" />
+	</target>
+
+	<target name="clean-all" depends="clean, clean-cache" description="Cleans the project and ivy cache" />
+
+	<target name="retrieve" depends="check.build.properties" description="">
+		<ivy:retrieve />
+	</target>
+
+	<!-- Compiles the java source files -->
+	<target name="compile" depends="retrieve">
+		<mkdir dir="${build.dir.classes}" />
+	</target>
+
+	<!-- Compiles the GWT modules to javascript Parameter: "target.dir", "target.file" -->
+	<target name="compile-gwt" depends="compile">
+		<mkdir dir="${dst.dir}/.www" />
+		<!-- create javascript for client with GWT -->
+		<java failonerror="true" fork="true" classname="com.google.gwt.dev.Compiler">
+			<classpath>
+				<pathelement location="${src.main.dir}" />
+				<path refid="build.classpath" />
+			</classpath>
+			<jvmarg value="-Xmx512M" />
+			<arg line="-style ${gwt.style}" if:set="gwt.style" />
+			<arg value="-strict" />
+			<arg value="-war" />
+			<arg value="${dst.dir}/.www" />
+			<arg line="${gwt.modules}" />
+		</java>
+
+		<delete dir="${dst.dir}/gwt-unitCache" />
+		<move todir="${dst.dir}/www/core">
+			<fileset dir="${dst.dir}/.www/core">
+				<include name="**/*"/>
+			</fileset>
+		</move>
+		<delete dir="${dst.dir}/.www" />
+	</target>
+
+	<target name="build" depends="compile-gwt" description="Creates a package containing the running RF-R300 platform">
+
+		<ivy:retrieve pattern="${dst.dir}/bin/felix.jar" conf="main" />
+		<ivy:retrieve pattern="${dst.dir}/bin/[artifact].[ext]" conf="tools" />
+
+		<replace file="${dst.dir}/www/core/info.html">		
+			<replacefilter token="@Bundle-Version@" value="${manifest.Bundle-Version}" />
+			<replacefilter token="@Bundle-Vendor@" value="${manifest.Bundle-Vendor}" />
+		</replace>
+
+		<symlink link="${dst.dir}/www/index.html" resource="frame/select.html" overwrite="true" />
+		<symlink link="${dst.dir}/www/main.html" resource="frame/index.html" overwrite="true" />
+		<symlink link="${dst.dir}/www/content.html" resource="core/index.html" overwrite="true" />
+
+		<symlink link="${dst.dir}/www/info.html" resource="core/info.html" overwrite="true" />
+
+		<ivy:resolve file="ivy.xml" />
+		<ivy:retrieve pattern="${dst.dir}/bundle/[artifact].[ext]" conf="runtime">
+			<firstmatchmapper>
+				<globmapper from="${dst.dir}/bundle/h2.jar" to="${dst.dir}/bundle/00_h2.jar" />
+				<globmapper from="${dst.dir}/bundle/havis.util.core-*.jar" to="${dst.dir}/bundle/00_havis.util.core-*.jar" />
+				<globmapper from="${dst.dir}/bundle/havis.util.context.jar" to="${dst.dir}/bundle/20_havis.util.context.jar" />
+				<globmapper from="${dst.dir}/bundle/havis.net.server.http.jar" to="${dst.dir}/bundle/30_havis.net.server.http.jar" />
+				<globmapper from="${dst.dir}/bundle/havis.util.monitor.jar" to="${dst.dir}/bundle/30_havis.util.monitor.jar" />
+				<globmapper from="${dst.dir}/bundle/havis.transport-*.jar" to="${dst.dir}/bundle/35_havis.transport-*.jar" />
+				<globmapper from="${dst.dir}/bundle/havis.transform-*.jar" to="${dst.dir}/bundle/35_havis.transform-*.jar" />
+				<globmapper from="${dst.dir}/bundle/*.jar" to="${dst.dir}/bundle/50_*.jar" />
+			</firstmatchmapper>
+		</ivy:retrieve>
+
+		<jar destfile="${dst.dir}/bundle/20_${basename}.jar" basedir="${resources.dir}/classpath" manifest="${resources.dir}/MANIFEST.MF" />
+	</target>
+</project>

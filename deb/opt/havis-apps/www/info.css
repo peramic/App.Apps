@@ -1,0 +1,53 @@
+@CHARSET "UTF-8";
+* {
+	font-family: Arial;
+}
+
+.heading {
+	display: flex;
+	display: -ms-flex;
+	flex-direction: row;
+	-ms-flex-direction: row;
+	align-items: center;
+	-ms-flex-align: center;
+	justify-content: space-between;
+	-ms-flex-pack: justify;
+	font-size: 1.55em;
+	font-weight: bold;
+}
+
+.infoicon {
+	height: 57px;
+	width: 57px;
+}
+
+table {
+	margin-top: 20px;
+	width: 100%;
+}
+
+tr {
+	min-height: 50px;
+}
+
+tr>td:first-child {
+	font-weight: bold;
+	width: 170px;
+}
+
+td {
+	font-size: 1.4em;
+	height: 50px;
+}
+
+input, textarea {
+	box-sizing: border-box;
+	font-size: 1em;
+	color: graytext;
+	border: 1px solid #ccc;
+	border-radius: 1em;
+	width: 100%;
+	padding: 0.35em 0.5em;
+	box-shadow: inset 5px 7px 9px 0 rgba(204, 204, 204, 0.41);
+	background-color: transparent;
+}

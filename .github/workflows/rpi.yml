@@ -1,0 +1,41 @@
+name: Build rpi image
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version'
+        required: true
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Check out
+        uses: actions/checkout@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - run: docker run --workdir /github/workspace --rm --privileged -e ARCH -e DIST -e APT -e MIRROR --entrypoint bash -v "$GITHUB_WORKSPACE":"/github/workspace" debian:stretch-slim "-c" "./mkrpi"
+        env:
+          ARCH: 'armhf'
+          DIST: 'stretch'
+          APT: 'https://peramic.github.io/debian'
+          MIRROR: 'http://httpredir.debian.org/debian'
+        id: build
+      - name: Create Release
+        id: release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.event.inputs.version }}-rpi
+          release_name: Release ${{ github.event.inputs.version }} for Raspberry Pi
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.release.outputs.upload_url }}
+          asset_path: ${{ steps.build.outputs.IMAGE }}
+          asset_name: ${{ steps.build.outputs.IMAGE }}
+          asset_content_type: application/zip

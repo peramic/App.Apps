@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ivy-module version="2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
+
+	<info organisation="havis/net" module="rf-r300" default="true" />
+
+	<configurations>
+		<conf name="default" />
+		<conf name="runtime" />
+		<conf name="main" />
+		<conf name="tools" />
+	</configurations>
+
+	<dependencies>
+		<dependency org="org/apache/felix" name="org.apache.felix.main" rev="${felix.version}" conf="main->default" />
+		<dependency org="org/apache/felix" name="org.apache.felix.configadmin" rev="${felix.configadmin.version}" conf="runtime->default" />
+		<dependency org="org/apache/felix" name="org.apache.felix.eventadmin" rev="${felix.eventadmin.version}" conf="runtime->default" />
+
+		<!-- web service -->
+		<dependency org="javax/ws/rs" name="javax.ws.rs-api" rev="${jaxws-api.version}" conf="runtime->default;default->default,src" />
+		<dependency org="com/sun/xml/ws" name="jaxws-rt" rev="${jaxws.version}" conf="runtime->default" />
+
+		<dependency org="havis/util" name="context" rev="${havis.version}" conf="runtime->default" />
+		<dependency org="havis/util/core" name="core-api" rev="${havis.version}" conf="runtime->default;default->default,src" />
+		<dependency org="havis/util/core" name="core-common" rev="${havis.version}" conf="runtime->default" />
+		<dependency org="havis/net/server" name="http" rev="${havis.version}" conf="runtime->default" />
+		<dependency org="havis/llrpservice" name="data" rev="${havis.version}" conf="runtime->default" />
+
+		<dependency org="havis/net/rest" name="shared" rev="${havis.version}" conf="default->default,src" />
+		<dependency org="havis/net/rest" name="core" rev="${havis.version}" conf="runtime->default;default->default,src" />
+
+		<dependency org="havis/net/ui" name="core" rev="${havis.version}" conf="default->default,src" />
+		<dependency org="havis/net/ui" name="shared" rev="${havis.version}" conf="default->default,src" />
+		<dependency org="havis/util" name="monitor" rev="${havis.version}" conf="runtime->default" transitive="false" />
+
+		<!-- Transport -->
+		<dependency org="havis/transport" name="transport-api" rev="${havis.version}" conf="runtime->default" />
+		<dependency org="havis/transport" name="transport-common" rev="${havis.version}" conf="runtime->default" />
+		<dependency org="org/eclipse/paho" name="org.eclipse.paho.client.mqttv3" rev="${paho.version}" conf="runtime->default" />
+		<dependency org="com/microsoft/azure/sdk/iot" name="iot-device-client" rev="${iot-device-client.version}" conf="runtime->default" />
+		<dependency org="org/slf4j" name="slf4j-api" rev="${slf4j.version}" conf="runtime->default" />
+		<dependency org="org/slf4j" name="slf4j-jdk14" rev="${slf4j.version}" conf="runtime->default" />
+
+		<!-- Transform -->
+		<dependency org="havis/transform" name="transform-api" rev="${havis.version}" conf="runtime->default" />
+		<dependency org="havis/transform" name="transform-common" rev="${havis.version}" conf="runtime->default" />
+
+		<!-- webservice -->
+		<dependency org="org/jboss/resteasy" name="resteasy-jaxrs" rev="${resteasy.version}" conf="runtime->default;default->default,src" />
+		<dependency org="org/jboss/resteasy" name="resteasy-jdk-http" rev="${resteasy.version}" conf="runtime->default;default->default,src" />
+		<dependency org="org/jboss/resteasy" name="resteasy-jackson2-provider" rev="${resteasy.version}" conf="runtime->default" />
+		<dependency org="org/jboss/resteasy" name="resteasy-jaxb-provider" rev="${resteasy.version}" conf="runtime->default" />
+
+		<!-- jdbc -->
+		<dependency org="com/sun/xml/ws" name="jaxws-rt" rev="${jaxws.version}" conf="runtime->default" />
+		<dependency org="com/h2database" name="h2" rev="${h2.version}" conf="runtime->default" />
+		<dependency org="org/osgi" name="org.osgi.service.jdbc" rev="${org.osgi.service.jdbc.version}" conf="runtime->default" />
+
+		<dependency org="net/sf/supercsv" name="super-csv" rev="${supercsv.version}" conf="runtime->default" />
+
+		<!-- gwt -->
+		<dependency org="com/google/gwt" name="gwt-dev" rev="${gwt.version}" conf="default" />
+		<dependency org="com/google/gwt" name="gwt-user" rev="${gwt.version}" conf="default" />
+		<dependency org="com/google/gwt" name="gwt-elemental" rev="${gwt.version}" conf="default" />
+		<dependency org="com/google/gwt/inject" name="gin" rev="${gin.version}" conf="default" />
+		<dependency org="com/fasterxml/jackson/core" name="jackson-annotations" rev="${jackson.version}" conf="default->default,src" />
+		<dependency org="org/fusesource/restygwt" name="restygwt" rev="${restygwt.version}" conf="default" />
+		<dependency org="javax/validation" name="validation-api" rev="${javax.validation}" conf="default->default,src" />
+
+	</dependencies>
+
+</ivy-module>

@@ -1,0 +1,7 @@
+export LANG="C.UTF-8"
+JAVA=/usr/bin/java
+DEPOT=${DEPOT:-127.0.0.1:8080}
+AUTH=${AUTH:-NONE}
+#DEBUG="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000"
+#JMX="-Dcom.sun.management.jmxremote.port=9090 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=0.0.0.0"
+ARGS="$DEBUG $JMX -Dhavis.net.server.http.port=80 -Dhavis.util.core.app.depot=$DEPOT -Duser.timezone=UTC -Dhavis.net.server.http.auth=$AUTH -Djava.security.egd=file:/dev/./urandom -Dfelix.native.processor.alias.arm_le=arm"

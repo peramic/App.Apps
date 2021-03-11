@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+set -x
+
+localedef -c -i POSIX -f UTF-8 C.UTF-8 || true
+cp /usr/lib/locale/locale-archive $TARGET/usr/lib/locale/locale-archive
+
+cp -r META $TARGET
+
+rm -f $TARGET/etc/resolv.conf
+rm -f $TARGET/etc/rc2.d/*dropbear

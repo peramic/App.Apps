@@ -1,0 +1,80 @@
+#!/bin/bash
+
+set -e
+set -x
+
+env
+
+ROOT=$(mktemp -d)
+CACHE=$(mktemp -d)
+PACKAGES="havis-jre-8 havis-depot havis-apps havis.middleware"
+TMP=$(mktemp -d)
+
+assume() {
+  name=$1
+  arch=$2
+  version=$3
+  cat >> $ROOT/var/lib/dpkg/status <<EOF
+Package: $name
+Status: install ok installed
+Architecture: $arch
+Version: $version
+
+EOF
+}
+
+init() {
+  mkdir -p $ROOT/etc/apt/sources.list.d $ROOT/etc/apt/preferences.d $ROOT/var/lib/apt $ROOT/var/cache/apt/archives $ROOT/var/lib/dpkg
+  cp -a /etc/apt/trusted.gpg.d $ROOT/etc/apt/
+
+  echo "deb [trusted=yes arch=$ARCH] $APT $DIST main" > $ROOT/etc/apt/sources.list.d/local.list
+  if [ "${DIST//*-}" = "staging" ]; then
+    echo "deb [trusted=yes arch=$ARCH] $APT ${DIST%%-*} main" >> $ROOT/etc/apt/sources.list.d/local.list
+  fi
+
+  assume debconf-2.0 all 2.0
+  assume init-system-helpers all 2.0
+
+  echo "deb $MIRROR ${DIST%%-*} main" > $ROOT/etc/apt/sources.list
+}
+
+update() {
+  apt-get -o Dir=$ROOT update
+}
+
+setup() {
+  apt-get -o Dir=$ROOT -o Dir::Cache::Archives=$CACHE -o APT::Architecture=$ARCH -f -y -d --no-install-recommends install $@
+}
+
+dpkg --add-architecture armhf
+apt-get update -qq
+apt-get install -q -y --no-install-recommends apt-transport-https ca-certificates wget zip unzip
+
+init
+update
+setup $PACKAGES
+
+RPIOS=raspios_lite_armhf_latest
+IMG=$(date +%Y-%m-%d)-raspios-rfid-armhf
+
+wget -q https://downloads.raspberrypi.org/$RPIOS
+unzip $RPIOS
+LOOP=$(losetup --show -f *-raspios-*.img)
+OFFSET=$(fdisk -l *-raspios-*.img | grep "Linux$" | awk '{print $2}')
+OFFSET=$((OFFSET*512))
+mount -o offset=$OFFSET ${LOOP} $TMP
+mv $CACHE/havis*.deb $TMP/tmp/
+cat > $TMP/tmp/install <<EOF
+apt-get -y install /tmp/*.deb
+apt-get clean
+EOF
+chmod 755 $TMP/tmp/install
+chroot $TMP bash -c /tmp/install
+rm $TMP/tmp/havis*.deb $TMP/tmp/install
+umount $TMP
+losetup -v -d $LOOP
+mv *-raspios-*.img ${IMG}.img
+zip -j ${IMG}.zip ${IMG}.img
+rm ${IMG}.img
+
+echo '::set-output name=IMAGE::'${IMG}.zip

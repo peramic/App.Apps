@@ -1,0 +1,66 @@
+#!/bin/busybox ash
+
+### BEGIN INIT INFO
+# Provides:		havis-apps
+# Required-Start:	$remote_fs $syslog
+# Required-Stop:	$remote_fs $syslog
+# Default-Start:	2 3 4 5
+# Default-Stop:		0 1 6
+# Short-Description:	Ha-VIS Apps
+# Description: 
+#
+### END INIT INFO
+
+. /etc/profile
+
+NAME=$(basename $(realpath $0))
+
+cd /opt/havis-apps
+
+. /etc/default/havis-apps
+
+DAEMON=${JAVA:-java}
+ARGS="-noverify -Djava.util.logging.config.file=conf/logging.properties $ARGS -jar bin/felix.jar"
+
+do_start()
+{
+  rm -rf felix-cache/*
+  busybox start-stop-daemon -S -m -p /run/$NAME\.pid -b -x $DAEMON -- $ARGS
+}
+
+do_stop()
+{
+  busybox start-stop-daemon -K -p /run/$NAME\.pid
+}
+
+do_run()
+{
+  rm -rf felix-cache/*
+  $DAEMON $ARGS
+}
+
+case "$1" in
+  start)
+    echo -n "Starting $NAME: "
+    do_start
+    ;;
+  stop)
+    echo -n "Stopping $NAME: "
+    do_stop
+    ;;
+  run)
+    do_run
+    ;;
+  restart)
+    echo -n "Restarting $NAME: "
+    do_stop
+    sleep 1
+    do_start
+    ;;
+  *)
+    echo "Usage: $NAME {start|stop|restart|run}"
+    exit 1
+    ;;
+esac
+
+exit 0

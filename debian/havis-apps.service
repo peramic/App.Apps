@@ -1,0 +1,11 @@
+[Unit]
+Description=Felix
+
+[Service]
+Type=simple
+ExecStartPre=/etc/init.d/mkenv
+ExecStart=/etc/init.d/havis-apps run
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

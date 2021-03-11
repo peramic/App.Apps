@@ -1,0 +1,10 @@
+Source: havis-apps
+Maintainer: HARTING IT_SD <opensource@HARTING.com>
+Build-Depends: debhelper, dh-exec, default-jdk-headless:amd64, ant:all, ivy:all, libjsch-java:all
+ 
+Package: havis-apps
+Architecture: all
+Depends: busybox, havis-jre-8, swagger-ui, libusb-1.0-0, libhidapi-libusb0
+Provides: httpd
+Recommends: mica-rpc, havis.middleware
+Description: Ha-VIS Apps

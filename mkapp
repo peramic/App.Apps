@@ -1,0 +1,40 @@
+#!/bin/bash
+
+set -e
+set -x
+
+env
+
+. /usr/share/mkapp/functions
+
+if [ "$PACKAGING" ]; then
+  ARCH=all build -g
+
+  if [ "$PUBLISH" ]; then
+    dpkg-name target/*.deb
+    publish_debs
+  fi
+fi
+
+if [ "$IMAGING" ]; then
+  init
+  update
+  setup havis-jre-8 havis-depot havis-apps havis.middleware
+  ROOT=rfs assume libc6 armhf 2.24
+  ROOT=rfs assume libhidapi-libusb0 armhf 0.8.0
+  ROOT=rfs assume libusb-1.0-0 armhf 2:1.0.8
+  ROOT=rfs assume havis.middleware all 2.7.0
+
+  cat  >> Dockerfile <<EOF
+
+RUN ["busybox", "--install", "-s"]
+
+EXPOSE 5084
+EXPOSE 8000
+EXPOSE 8888
+
+EOF
+  finish '/opt/havis-apps' '["/sbin/init"]'
+  mkdir -p rfs/bin rfs/usr/bin rfs/sbin rfs/usr/sbin rfs/tmp rfs/var/lib/dpkg/info
+  cat Dockerfile
+fi

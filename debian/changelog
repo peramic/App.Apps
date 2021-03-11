@@ -1,0 +1,5 @@
+havis-apps (2.7.0-1) unstable; urgency=medium
+
+  * Switch to debian package build
+
+ -- HARTING IT_SD <opensource@HARTING.com>  Fri, 26 Feb 2021 09:57:27 +0100
