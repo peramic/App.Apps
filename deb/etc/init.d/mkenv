@@ -58,8 +58,6 @@ export DEPOT=depot
 export AUTH=MICA
 EOF
 
-fi
-
 if [ ! -d /opt/havis-apps/felix-cache ]; then
   TMP=$(mktemp -d)
   wget -q "http://depot/cgi-bin/depot.sh" -O - | tar x -C $TMP
@@ -67,6 +65,8 @@ if [ ! -d /opt/havis-apps/felix-cache ]; then
     sh $APP install
   done
   rm -r $TMP
+fi
+
 fi
 }
 
