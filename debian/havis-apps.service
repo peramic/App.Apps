@@ -3,7 +3,7 @@ Description=Felix
 
 [Service]
 Type=simple
-ExecStartPre=/etc/init.d/mkenv
+ExecStartPre=/etc/init.d/mkenv start
 ExecStart=/etc/init.d/havis-apps run
 Restart=on-failure
 
