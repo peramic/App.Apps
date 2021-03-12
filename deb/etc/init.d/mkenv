@@ -5,6 +5,7 @@
 # Required-Start:	$remote_fs $syslog networking
 # Required-Stop:	$remote_fs $syslog
 # Default-Start:	S
+# Default-Stop:
 # Short-Description:	Ha-VIS mkenv
 # Description: 
 #
