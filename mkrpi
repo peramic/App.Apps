@@ -63,14 +63,14 @@ LOOP=$(losetup --show -f *-raspios-*.img)
 OFFSET=$(fdisk -l *-raspios-*.img | grep "Linux$" | awk '{print $2}')
 OFFSET=$((OFFSET*512))
 mount -o offset=$OFFSET ${LOOP} $TMP
-mv $CACHE/havis*.deb $TMP/tmp/
+mv $CACHE/{havis,swagger-ui}*.deb $TMP/tmp/
 cat > $TMP/tmp/install <<EOF
 apt-get -y install /tmp/*.deb
 apt-get clean
 EOF
 chmod 755 $TMP/tmp/install
 chroot $TMP bash -c /tmp/install
-rm $TMP/tmp/havis*.deb $TMP/tmp/install
+rm $TMP/tmp/{havis,swagger-ui}*.deb $TMP/tmp/install
 umount $TMP
 losetup -v -d $LOOP
 mv *-raspios-*.img ${IMG}.img
